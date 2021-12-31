@@ -25,6 +25,7 @@ public class HealthCheckerTask extends TimerTask {
     });
     private final Server server;
     private final AtomicBoolean finished = new AtomicBoolean(true);
+    private Exception lastException = null;
 
     public HealthCheckerTask(@NotNull ConfiguredServer server) {
         this.server = new Server(server);
@@ -49,6 +50,7 @@ public class HealthCheckerTask extends TimerTask {
                         }
                     }
                 }
+                lastException = null;
                 server.failCount = 0;
             }
             if (server.failCount == server.getConfig().getThreshold()) {
@@ -58,7 +60,9 @@ public class HealthCheckerTask extends TimerTask {
                     try {
                         String prefix = server.getConfig().getWebhookMessagePrefix();
                         if (prefix == null) prefix = "";
-                        Util.sendDiscordWebhook(url, null, prefix + ":x: " + server.getConfig().getName() + " is **down**");
+                        String suffix = "";
+                        if (lastException != null) suffix = " (" + lastException.getClass().getSimpleName() + ": " + lastException.getMessage() + ")";
+                        Util.sendDiscordWebhook(url, null, prefix + ":x: " + server.getConfig().getName() + " is **down**" + suffix);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -70,6 +74,7 @@ public class HealthCheckerTask extends TimerTask {
                 Util.check(server.getConfig());
             } catch (IOException e) {
                 if (AppConfig.debug) LOGGER.warn("Error checking host {}", server.getConfig().getHost(), e);
+                lastException = e;
                 return;
             }
             long total = System.currentTimeMillis() - start;

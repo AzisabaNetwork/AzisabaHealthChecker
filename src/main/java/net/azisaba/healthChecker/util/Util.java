@@ -40,10 +40,19 @@ public class Util {
     public static void check(@NotNull ConfiguredServer server) throws IOException {
         if (server.getProtocol() == Protocol.TCP) {
             Socket socket = new Socket();
-            socket.connect(server.getHost(), 1000);
+            socket.connect(server.getHost(), server.getPeriod());
             socket.close();
         } else {
             DatagramSocket socket = new DatagramSocket();
+            new Thread(() -> {
+                try {
+                    Thread.sleep(server.getPeriod());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    socket.close();
+                }
+            }).start();
             DatagramPacket packet = new DatagramPacket(new byte[0], 0, server.getHost());
             socket.connect(server.getHost());
             socket.send(packet);
