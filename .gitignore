@@ -3,4 +3,5 @@
 build/
 logs/
 config.yml
+cache.yml
 *.iml

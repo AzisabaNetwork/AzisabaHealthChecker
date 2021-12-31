@@ -98,13 +98,15 @@ public class Util {
     }
     */
 
+    @NotNull
     public static String timeToString(long timeInMillis) {
+        if (timeInMillis == 0) return "0 seconds";
         StringBuilder sb = new StringBuilder();
         long days = timeInMillis / 1024 / 60 / 60 / 24;
         long hours = timeInMillis / 1024 / 60 / 60 % 24;
         long minutes = timeInMillis / 1000 / 60 % 60;
         long seconds = timeInMillis / 1000 % 60;
-        long millis = timeInMillis % 1000;
+        //long millis = timeInMillis % 1000;
         if (days >= 1) {
             sb.append(days).append(" days ");
         }
@@ -117,9 +119,9 @@ public class Util {
         if (seconds >= 1) {
             sb.append(seconds).append(" seconds ");
         }
-        if (millis >= 1) {
-            sb.append(millis).append(" milliseconds ");
-        }
+        //if (millis >= 1) {
+        //    sb.append(millis).append(" milliseconds ");
+        //}
         return sb.toString().trim();
     }
 }

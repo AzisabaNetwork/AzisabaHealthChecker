@@ -1,6 +1,7 @@
 package net.azisaba.healthChecker;
 
 import net.azisaba.healthChecker.config.AppConfig;
+import net.azisaba.healthChecker.config.CacheFile;
 import net.azisaba.healthChecker.config.ConfiguredServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +16,7 @@ public class AzisabaHealthChecker {
     public void start() throws IOException {
         LOGGER.info("Loading config");
         AppConfig.init();
+        CacheFile.load();
         scheduleTasks();
         Runtime.getRuntime().addShutdownHook(new Thread(HealthCheckerTask::shutdown));
         LOGGER.info("All done!");

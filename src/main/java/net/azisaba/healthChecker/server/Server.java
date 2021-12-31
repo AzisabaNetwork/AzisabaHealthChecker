@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class Server {
     private final ConfiguredServer config;
-    public int failCount = 0;
+    public long downSince = 0;
 
     public Server(ConfiguredServer config) {
         this.config = config;
