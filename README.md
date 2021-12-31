@@ -6,11 +6,11 @@ verbose: false
 discordWebhook: null # default discord webhook url
 servers:
   - name: test # user-friendly name (required)
-    protocol: UDP # TCP or UDP (default: TCP)
+    protocol: udp # tcp or udp (default: TCP)
     host: localhost:10000 # hostname:port (required)
     period: 1000 # default: 5000 milliseconds (optional)
   - name: test2
-    protocol: TCP
+    protocol: tcp
     host: localhost:25599
     period: 5000
     threshold: 10 # default: 10

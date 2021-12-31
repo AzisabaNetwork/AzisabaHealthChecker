@@ -53,10 +53,9 @@ public class Util {
                     socket.close();
                 }
             }).start();
-            DatagramPacket packet = new DatagramPacket(new byte[0], 0, server.getHost());
-            socket.connect(server.getHost());
+            DatagramPacket packet = new DatagramPacket(new byte[] {0}, 1, server.getHost());
             socket.send(packet);
-            packet = new DatagramPacket(new byte[1], 1);
+            packet = new DatagramPacket(new byte[0], 0);
             socket.receive(packet);
             socket.close();
         }

@@ -26,6 +26,7 @@ public class HealthCheckerTask extends TimerTask {
     private final Server server;
     private final AtomicBoolean finished = new AtomicBoolean(true);
     private Exception lastException = null;
+    private boolean wasDown = false;
 
     public HealthCheckerTask(@NotNull ConfiguredServer server) {
         this.server = new Server(server);
@@ -37,7 +38,7 @@ public class HealthCheckerTask extends TimerTask {
             if (!finished.get()) {
                 server.failCount++;
             } else {
-                if (server.failCount > server.getConfig().getThreshold()) {
+                if (wasDown) {
                     LOGGER.info("{} ({}) is up. It was down for {}. (Attempted {} times)", server.getConfig().getName(), server.getConfig().getHost(), Util.timeToString((long) server.failCount * server.getConfig().getPeriod()), server.failCount);
                     String url = server.getConfig().getEffectiveDiscordWebhook();
                     if (url != null) {
@@ -52,16 +53,18 @@ public class HealthCheckerTask extends TimerTask {
                 }
                 lastException = null;
                 server.failCount = 0;
+                wasDown = false;
             }
-            if (server.failCount == server.getConfig().getThreshold()) {
-                LOGGER.info("{} ({}) is down after {} tries ({})", server.getConfig().getName(), server.getConfig().getHost(), server.failCount, Util.timeToString((long) server.failCount * server.getConfig().getPeriod()));
+            if (!wasDown && server.failCount >= server.getConfig().getThreshold()) {
+                wasDown = true;
+                String suffix = "";
+                if (lastException != null) suffix = " (" + lastException.getClass().getSimpleName() + ": " + lastException.getMessage() + ")";
+                LOGGER.info("{} ({}) is down after {} tries ({}) {}", server.getConfig().getName(), server.getConfig().getHost(), server.failCount, Util.timeToString((long) server.failCount * server.getConfig().getPeriod()), suffix);
                 String url = server.getConfig().getEffectiveDiscordWebhook();
                 if (url != null) {
                     try {
                         String prefix = server.getConfig().getWebhookMessagePrefix();
                         if (prefix == null) prefix = "";
-                        String suffix = "";
-                        if (lastException != null) suffix = " (" + lastException.getClass().getSimpleName() + ": " + lastException.getMessage() + ")";
                         Util.sendDiscordWebhook(url, null, prefix + ":x: " + server.getConfig().getName() + " is **down**" + suffix);
                     } catch (IOException e) {
                         e.printStackTrace();
