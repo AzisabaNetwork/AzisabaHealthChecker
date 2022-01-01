@@ -3,6 +3,7 @@ package net.azisaba.healthChecker;
 import net.azisaba.healthChecker.config.AppConfig;
 import net.azisaba.healthChecker.config.CacheFile;
 import net.azisaba.healthChecker.config.ConfiguredServer;
+import net.azisaba.healthChecker.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,7 +19,11 @@ public class AzisabaHealthChecker {
         AppConfig.init();
         CacheFile.load();
         scheduleTasks();
-        Runtime.getRuntime().addShutdownHook(new Thread(HealthCheckerTask::shutdown));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            timer.cancel();
+            Util.TIMER.cancel();
+            HealthCheckerTask.shutdown();
+        }));
         LOGGER.info("All done!");
     }
 

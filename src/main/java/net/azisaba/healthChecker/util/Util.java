@@ -2,6 +2,8 @@ package net.azisaba.healthChecker.util;
 
 import net.azisaba.healthChecker.config.ConfiguredServer;
 import net.azisaba.healthChecker.config.Protocol;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
@@ -14,27 +16,81 @@ import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.function.Supplier;
 
 public class Util {
-    public static void sendDiscordWebhook(@NotNull String url, @Nullable String username, @NotNull String content) throws IOException {
+    private static final Logger LOGGER = LogManager.getLogger();
+    private static long discordRateLimitReset = 0;
+    private static final List<Tuple<String, String, Supplier<String>>> WEBHOOK_QUEUE = Collections.synchronizedList(new ArrayList<>());
+    public static final Timer TIMER = new Timer("WebhookExecutor");
+
+    static {
+        TIMER.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (discordRateLimitReset > System.currentTimeMillis()) return;
+                if (WEBHOOK_QUEUE.isEmpty()) return;
+                Tuple<String, String, Supplier<String>> tuple = WEBHOOK_QUEUE.remove(0);
+                if (tuple == null) return;
+                try {
+                    doSendDiscordWebhook(tuple.getFirst(), tuple.getSecond(), tuple.getThird());
+                } catch (IOException e) {
+                    LOGGER.warn("Failed to execute Discord webhook", e);
+                }
+            }
+        }, 100, 100);
+    }
+
+    public static void sendDiscordWebhook(@NotNull String url, @Nullable String username, @NotNull Supplier<@Nullable String> contentSupplier) {
         if (url.isEmpty()) return;
+        WEBHOOK_QUEUE.add(new Tuple<>(url, username, contentSupplier));
+    }
+
+    private static void doSendDiscordWebhook(@NotNull String url, @Nullable String username, @NotNull Supplier<@Nullable String> contentSupplier) throws IOException {
+        String content = contentSupplier.get();
+        if (content == null || content.isEmpty()) return;
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.addRequestProperty("Accept", "application/json");
-        connection.addRequestProperty("Content-Type", "application/json");
-        connection.addRequestProperty("User-Agent", "AzisabaHealthChecker/1.0.0");
-        connection.setDoOutput(true);
-        connection.setRequestMethod("POST");
-        OutputStream stream = connection.getOutputStream();
-        JSONObject json = new JSONObject();
-        if (username != null) {
-            json.put("username", username);
+        try {
+            connection.addRequestProperty("Accept", "application/json");
+            connection.addRequestProperty("Content-Type", "application/json");
+            connection.addRequestProperty("User-Agent", "AzisabaHealthChecker/1.0.0");
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            OutputStream stream = connection.getOutputStream();
+            JSONObject json = new JSONObject();
+            if (username != null) {
+                json.put("username", username);
+            }
+            json.put("content", content);
+            stream.write(json.toString().getBytes(StandardCharsets.UTF_8));
+            stream.flush();
+            stream.close();
+            connection.connect();
+            int code = connection.getResponseCode();
+            if (code < 200 || code >= 300) {
+                LOGGER.warn("Server returned non-2xx HTTP response code: {}", code);
+                WEBHOOK_QUEUE.add(new Tuple<>(url, username, contentSupplier));
+            }
+            long retryAfter = (long) Math.ceil(Optional.ofNullable(connection.getHeaderField("Retry-After")).map(Double::parseDouble).orElse(0.0));
+            if (retryAfter > 0) {
+                discordRateLimitReset = System.currentTimeMillis() + retryAfter + 1000;
+                LOGGER.warn("Waiting until {} (Received Retry-After: {})", discordRateLimitReset, connection.getHeaderField("Retry-After"));
+                return;
+            }
+            int remaining = connection.getHeaderFieldInt("X-RateLimit-Remaining", 0);
+            if (remaining == 0) {
+                discordRateLimitReset = (long) (Double.parseDouble(connection.getHeaderField("X-RateLimit-Reset")) * 1000 + 1000);
+                //LOGGER.info("Rate limit reset: {} (Raw: {})", discordRateLimitReset, connection.getHeaderField("X-RateLimit-Reset"));
+            }
+        } finally {
+            connection.disconnect();
         }
-        json.put("content", content);
-        stream.write(json.toString().getBytes(StandardCharsets.UTF_8));
-        stream.flush();
-        stream.close();
-        connection.getInputStream().close();
-        connection.disconnect();
     }
 
     public static void check(@NotNull ConfiguredServer server) throws IOException {
@@ -123,5 +179,10 @@ public class Util {
         //    sb.append(millis).append(" milliseconds ");
         //}
         return sb.toString().trim();
+    }
+
+    public static <T> T orElse(T value, T def) {
+        if (value == null) return def;
+        return value;
     }
 }

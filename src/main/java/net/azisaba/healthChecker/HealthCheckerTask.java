@@ -26,7 +26,8 @@ public class HealthCheckerTask extends TimerTask {
         return t;
     });
     private final Server server;
-    private final AtomicBoolean finished = new AtomicBoolean(true);
+    private final AtomicBoolean finished = new AtomicBoolean(false);
+    private final AtomicBoolean reallyUp = new AtomicBoolean(false);
     private Exception lastException = null;
     private boolean wasDown = false;
 
@@ -46,29 +47,27 @@ public class HealthCheckerTask extends TimerTask {
                 if (server.downSince == 0) {
                     server.downSince = System.currentTimeMillis();
                 }
+                reallyUp.set(false);
             } else {
-                if (wasDown) {
-                    LOGGER.info("{} ({}) is up. It was down for {}.", server.getConfig().getName(), server.getConfig().getHost(), Util.timeToString(System.currentTimeMillis() - server.downSince));
+                if (reallyUp.get() && wasDown) {
+                    String time = Util.timeToString(System.currentTimeMillis() - server.downSince);
+                    LOGGER.info("{} ({}) is up. It was down for {}.", server.getConfig().getName(), server.getConfig().getHost(), time);
                     String url = server.getConfig().getEffectiveDiscordWebhook();
                     if (url != null) {
-                        try {
-                            String prefix = server.getConfig().getWebhookMessagePrefix();
-                            if (prefix == null) prefix = "";
-                            Util.sendDiscordWebhook(url, null, prefix + ":o: " + server.getConfig().getName() + " is **up**. It was down for " + Util.timeToString(System.currentTimeMillis() - server.downSince) + ".");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        String prefix = Util.orElse(server.getConfig().getWebhookMessagePrefix(), "");
+                        Util.sendDiscordWebhook(url, null, () -> prefix + ":o: " + server.getConfig().getName() + " is **up**. It was down for " + time + ".");
                     }
 
                     // save cache
+                    wasDown = false;
+                    server.downSince = 0;
                     CachedData data = CacheFile.map.computeIfAbsent(server.getConfig().getName(), name -> new CachedData(wasDown, server.downSince));
                     data.wasDown = false;
                     data.downSince = 0;
                     CacheFile.save();
                 }
                 lastException = null;
-                server.downSince = 0;
-                wasDown = false;
+                reallyUp.set(true);
             }
             if (!wasDown && server.downSince > 0 && server.downSince <= System.currentTimeMillis() - (long) server.getConfig().getPeriod() * server.getConfig().getThreshold()) {
                 wasDown = true;
@@ -84,13 +83,9 @@ public class HealthCheckerTask extends TimerTask {
                 LOGGER.info("{} ({}) is down since {} ago{}", server.getConfig().getName(), server.getConfig().getHost(), Util.timeToString(System.currentTimeMillis() - server.downSince), suffix);
                 String url = server.getConfig().getEffectiveDiscordWebhook();
                 if (url != null) {
-                    try {
-                        String prefix = server.getConfig().getWebhookMessagePrefix();
-                        if (prefix == null) prefix = "";
-                        Util.sendDiscordWebhook(url, null, prefix + ":x: " + server.getConfig().getName() + " is **down** since " + (Util.timeToString(System.currentTimeMillis() - server.downSince)) + " ago" + suffix);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    String prefix = Util.orElse(server.getConfig().getWebhookMessagePrefix(), "");
+                    String finalSuffix = suffix;
+                    Util.sendDiscordWebhook(url, null, () -> prefix + ":x: " + server.getConfig().getName() + " is **down** since " + (Util.timeToString(System.currentTimeMillis() - server.downSince)) + " ago" + finalSuffix);
                 }
             }
             finished.set(false);

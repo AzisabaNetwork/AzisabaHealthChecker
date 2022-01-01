@@ -88,7 +88,7 @@ public class YamlConfiguration {
 
     public static void saveTo(@NotNull File file, @NotNull Yaml yaml, @NotNull YamlMember member) throws IOException {
         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-        out.write(dump(member).getBytes(StandardCharsets.UTF_8));
+        out.write(yaml.dumpAsMap(member.getRawData()).getBytes(StandardCharsets.UTF_8));
         out.close();
     }
 
