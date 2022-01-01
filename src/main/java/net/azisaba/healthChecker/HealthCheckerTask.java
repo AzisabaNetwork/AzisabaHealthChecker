@@ -60,12 +60,12 @@ public class HealthCheckerTask extends TimerTask {
 
                     // save cache
                     wasDown = false;
-                    server.downSince = 0;
                     CachedData data = CacheFile.map.computeIfAbsent(server.getConfig().getName(), name -> new CachedData(wasDown, server.downSince));
                     data.wasDown = false;
                     data.downSince = 0;
                     CacheFile.save();
                 }
+                server.downSince = 0;
                 lastException = null;
                 reallyUp.set(true);
             }
