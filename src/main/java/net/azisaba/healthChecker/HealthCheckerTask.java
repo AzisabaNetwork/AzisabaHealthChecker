@@ -65,7 +65,9 @@ public class HealthCheckerTask extends TimerTask {
                     data.downSince = 0;
                     CacheFile.save();
                 }
-                server.downSince = 0;
+                if (!wasDown) {
+                    server.downSince = 0;
+                }
                 lastException = null;
                 reallyUp.set(true);
             }
