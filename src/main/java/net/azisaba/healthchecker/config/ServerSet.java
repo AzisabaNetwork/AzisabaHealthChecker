@@ -1,8 +1,8 @@
-package net.azisaba.healthChecker.config;
+package net.azisaba.healthchecker.config;
 
-import net.azisaba.healthChecker.util.InvalidArgumentException;
-import net.azisaba.healthChecker.yaml.YamlArray;
-import net.azisaba.healthChecker.yaml.YamlObject;
+import net.azisaba.healthchecker.util.InvalidArgumentException;
+import net.azisaba.healthchecker.yaml.YamlArray;
+import net.azisaba.healthchecker.yaml.YamlObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;

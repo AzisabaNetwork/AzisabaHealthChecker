@@ -1,4 +1,4 @@
-package net.azisaba.healthChecker;
+package net.azisaba.healthchecker;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

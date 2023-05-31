@@ -1,4 +1,4 @@
-package net.azisaba.healthChecker.yaml;
+package net.azisaba.healthchecker.yaml;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

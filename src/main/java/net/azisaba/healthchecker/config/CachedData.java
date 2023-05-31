@@ -1,6 +1,6 @@
-package net.azisaba.healthChecker.config;
+package net.azisaba.healthchecker.config;
 
-import net.azisaba.healthChecker.yaml.YamlObject;
+import net.azisaba.healthchecker.yaml.YamlObject;
 import org.jetbrains.annotations.NotNull;
 
 public class CachedData {

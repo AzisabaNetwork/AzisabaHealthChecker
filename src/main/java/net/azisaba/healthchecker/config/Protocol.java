@@ -1,4 +1,4 @@
-package net.azisaba.healthChecker.config;
+package net.azisaba.healthchecker.config;
 
 public enum Protocol {
     TCP,

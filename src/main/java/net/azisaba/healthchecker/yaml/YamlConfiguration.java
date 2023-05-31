@@ -1,4 +1,4 @@
-package net.azisaba.healthChecker.yaml;
+package net.azisaba.healthchecker.yaml;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ public class YamlConfiguration {
         this.yaml = yaml;
         this.data = this.yaml.load(inputStream);
     }
-    
+
     public YamlConfiguration(@NotNull Yaml yaml, @NotNull String yamlInString) {
         this.yaml = yaml;
         this.data = this.yaml.load(yamlInString);

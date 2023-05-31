@@ -1,11 +1,11 @@
-package net.azisaba.healthChecker;
+package net.azisaba.healthchecker;
 
-import net.azisaba.healthChecker.config.AppConfig;
-import net.azisaba.healthChecker.config.CacheFile;
-import net.azisaba.healthChecker.config.CachedData;
-import net.azisaba.healthChecker.config.ConfiguredServer;
-import net.azisaba.healthChecker.server.Server;
-import net.azisaba.healthChecker.util.Util;
+import net.azisaba.healthchecker.config.AppConfig;
+import net.azisaba.healthchecker.config.CacheFile;
+import net.azisaba.healthchecker.config.CachedData;
+import net.azisaba.healthchecker.config.ConfiguredServer;
+import net.azisaba.healthchecker.server.Server;
+import net.azisaba.healthchecker.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;

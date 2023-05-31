@@ -1,4 +1,4 @@
-package net.azisaba.healthChecker.config;
+package net.azisaba.healthchecker.config;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

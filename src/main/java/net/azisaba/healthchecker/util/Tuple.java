@@ -1,4 +1,4 @@
-package net.azisaba.healthChecker.util;
+package net.azisaba.healthchecker.util;
 
 import java.util.Objects;
 

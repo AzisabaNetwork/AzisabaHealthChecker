@@ -1,8 +1,8 @@
-package net.azisaba.healthChecker.config;
+package net.azisaba.healthchecker.config;
 
-import net.azisaba.healthChecker.util.InvalidArgumentException;
-import net.azisaba.healthChecker.util.StringReader;
-import net.azisaba.healthChecker.yaml.YamlObject;
+import net.azisaba.healthchecker.util.InvalidArgumentException;
+import net.azisaba.healthchecker.util.StringReader;
+import net.azisaba.healthchecker.yaml.YamlObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

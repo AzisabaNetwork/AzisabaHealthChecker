@@ -1,7 +1,7 @@
-package net.azisaba.healthChecker.util;
+package net.azisaba.healthchecker.util;
 
-import net.azisaba.healthChecker.config.ConfiguredServer;
-import net.azisaba.healthChecker.config.Protocol;
+import net.azisaba.healthchecker.config.ConfiguredServer;
+import net.azisaba.healthchecker.config.Protocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;

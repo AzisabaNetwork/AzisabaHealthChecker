@@ -1,7 +1,7 @@
-package net.azisaba.healthChecker.config;
+package net.azisaba.healthchecker.config;
 
-import net.azisaba.healthChecker.yaml.YamlConfiguration;
-import net.azisaba.healthChecker.yaml.YamlObject;
+import net.azisaba.healthchecker.yaml.YamlConfiguration;
+import net.azisaba.healthchecker.yaml.YamlObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

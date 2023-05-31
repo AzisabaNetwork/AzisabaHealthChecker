@@ -1,4 +1,4 @@
-package net.azisaba.healthChecker.util;
+package net.azisaba.healthchecker.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -1,6 +1,6 @@
-package net.azisaba.healthChecker.server;
+package net.azisaba.healthchecker.server;
 
-import net.azisaba.healthChecker.config.ConfiguredServer;
+import net.azisaba.healthchecker.config.ConfiguredServer;
 import org.jetbrains.annotations.NotNull;
 
 public class Server {

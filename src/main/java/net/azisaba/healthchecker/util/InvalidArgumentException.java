@@ -1,4 +1,4 @@
-package net.azisaba.healthChecker.util;
+package net.azisaba.healthchecker.util;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.Contract;
