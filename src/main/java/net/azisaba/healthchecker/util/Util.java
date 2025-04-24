@@ -2,6 +2,7 @@ package net.azisaba.healthchecker.util;
 
 import net.azisaba.healthchecker.config.ConfiguredServer;
 import net.azisaba.healthchecker.config.Protocol;
+import net.blueberrymc.nativeutil.NativeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -10,18 +11,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.HttpURLConnection;
-import java.net.Socket;
-import java.net.URL;
+import java.lang.reflect.Field;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class Util {
@@ -98,7 +91,7 @@ public class Util {
             Socket socket = new Socket();
             socket.connect(server.getHost(), server.getPeriod());
             socket.close();
-        } else {
+        } else if (server.getProtocol() == Protocol.UDP) {
             DatagramSocket socket = new DatagramSocket();
             new Thread(() -> {
                 try {
@@ -113,6 +106,10 @@ public class Util {
             socket.send(packet);
             packet = new DatagramPacket(new byte[0], 0);
             socket.receive(packet);
+            socket.close();
+        } else if (server.getProtocol() == Protocol.MINECRAFT) {
+            Socket socket = new Socket();
+            socket.connect(server.getHost(), server.getPeriod());
             socket.close();
         }
     }
@@ -184,5 +181,45 @@ public class Util {
     public static <T> T orElse(T value, T def) {
         if (value == null) return def;
         return value;
+    }
+
+    @NotNull
+    public static InetSocketAddress explode(@NotNull String s) throws InvalidArgumentException {
+        StringReader reader = new StringReader(s);
+        if (s.indexOf(':') == -1)
+            throw InvalidArgumentException.createUnexpectedEOF(':').withContext(reader, reader.length(), 1);
+        if (s.indexOf(':') != s.lastIndexOf(':')) {
+            int idx = s.indexOf(':');
+            while (!reader.isEOF()) {
+                if (reader.peek() == ':' && reader.getIndex() != idx) {
+                    break;
+                }
+                reader.readFirst();
+            }
+            throw new InvalidArgumentException("Malformed host:port string").withContext(reader, 0, reader.length() - reader.getIndex());
+        }
+        int port;
+        try {
+            port = Integer.parseInt(s.split(":")[1]);
+            if (port <= 0 || port > 65535) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            throw new InvalidArgumentException("Invalid port").withContext(reader, s.indexOf(':'), s.length() - s.indexOf(':'));
+        }
+        InetAddress address;
+        try {
+            address = InetAddress.getByName(s.split(":")[0]);
+        } catch (UnknownHostException e) {
+            throw new InvalidArgumentException("Unknown host", e).withContext(reader, 0, s.indexOf(':'));
+        }
+        return new InetSocketAddress(address, port);
+    }
+
+    public static void allowMethods(String... methods) {
+        Field methodsField = NativeUtil.getStaticField(HttpURLConnection.class, "methods", "[Ljava/lang/String;");
+        String[] oldMethods = (String[]) NativeUtil.get(methodsField, null);
+        Set<String> methodsSet = new LinkedHashSet<>(Arrays.asList(oldMethods));
+        methodsSet.addAll(Arrays.asList(methods));
+        String[] newMethods = methodsSet.toArray(new String[0]);
+        NativeUtil.set(methodsField, null, newMethods);
     }
 }

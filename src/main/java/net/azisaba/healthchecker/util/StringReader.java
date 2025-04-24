@@ -78,9 +78,9 @@ public class StringReader {
     }
 
     /**
-     * Reads the first character from text. Updates the index by 1.
+     * Reads the first character from a text. Updates the index by 1.
      * @return read string
-     * @throws IllegalArgumentException if index is negative
+     * @throws IllegalArgumentException if the index is negative
      */
     @NotNull
     public String readFirst() {
@@ -88,9 +88,9 @@ public class StringReader {
     }
 
     /**
-     * Reads the first character from text. Updates the index by 1.
+     * Reads the first character from a text. Updates the index by 1.
      * @return read char
-     * @throws IllegalArgumentException if index is negative
+     * @throws IllegalArgumentException if the index is negative
      */
     public char readFirstAsChar() {
         return readFirst().charAt(0);
@@ -100,7 +100,7 @@ public class StringReader {
      * Reads the text by provided amount. Updates the index by <code>amount</code>.
      * @param amount the amount to read text
      * @return read string
-     * @throws IllegalArgumentException if amount is out of range
+     * @throws IllegalArgumentException if the amount is out of range
      */
     @NotNull
     public String read(int amount) {
@@ -111,7 +111,7 @@ public class StringReader {
 
     /**
      * Reads the text by provided amount. Updates the index by <code>amount</code>.
-     * Does not throw exception when amount exceeds the string length, and supports negative amount.
+     * Does not throw exception when the amount exceeds the string length and supports a negative amount.
      * @param amount the amount to read text
      * @return read string
      */
@@ -130,7 +130,7 @@ public class StringReader {
     /**
      * Checks if the remaining text starts with `prefix`.
      * @param prefix the prefix
-     * @return true if starts with prefix, false otherwise
+     * @return true if starts with the prefix, false otherwise
      */
     public boolean startsWith(String prefix) {
         return peekRemaining().startsWith(prefix);
@@ -192,7 +192,7 @@ public class StringReader {
     }
 
     /**
-     * Copy StringReader with current index and text.
+     * Copy StringReader with the current index and text.
      * @return new string reader
      */
     @NotNull

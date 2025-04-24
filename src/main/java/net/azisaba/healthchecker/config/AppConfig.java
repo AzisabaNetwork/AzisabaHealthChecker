@@ -25,11 +25,13 @@ public class AppConfig {
         File file = new File("./config.yml");
         boolean shouldSave = !file.exists();
         if (!file.exists() && !file.createNewFile()) {
-            LOGGER.warn("Failed to create " + file.getAbsolutePath());
+            LOGGER.warn("Failed to create {}", file.getAbsolutePath());
         }
         config = new YamlConfiguration(file).asObject();
         for (Field field : FIELDS) {
-            String serializedName = field.getAnnotation(SerializedName.class).value();
+            SerializedName annotation = field.getAnnotation(SerializedName.class);
+            if (annotation == null) continue;
+            String serializedName = annotation.value();
             try {
                 Object def = field.get(null);
                 field.set(null, config.get(serializedName, def));
@@ -37,9 +39,13 @@ public class AppConfig {
                 LOGGER.warn("Failed to get or set field '{}' (serialized name: {})", field.getName(), serializedName, ex);
             }
         }
-        YamlArray rules = config.getArray("servers");
-        if (rules != null) {
-            servers.read(rules);
+        YamlArray serversArray = config.getArray("servers");
+        if (serversArray != null) {
+            servers.read(serversArray);
+        }
+        YamlArray zonesArray = config.getArray("zones");
+        if (zonesArray != null) {
+            zones.read(zonesArray);
         }
         if (shouldSave) save();
     }
@@ -47,7 +53,9 @@ public class AppConfig {
     public static void save() throws IOException {
         if (config == null) throw new RuntimeException("#init was not called");
         for (Field field : FIELDS) {
-            String serializedName = field.getAnnotation(SerializedName.class).value();
+            SerializedName annotation = field.getAnnotation(SerializedName.class);
+            if (annotation == null) continue;
+            String serializedName = annotation.value();
             try {
                 Object value = field.get(null);
                 config.setNullable(serializedName, value);
@@ -60,6 +68,7 @@ public class AppConfig {
 
     public static void reset() {
         servers.clear();
+        zones.clear();
         debug = false;
         verbose = true;
         discordWebhook = null;
@@ -67,6 +76,9 @@ public class AppConfig {
 
     @NotNull
     public static ServerSet servers = new ServerSet();
+
+    @NotNull
+    public static ZoneSet zones = new ZoneSet();
 
     @SerializedName("debug")
     public static boolean debug = false;
@@ -86,7 +98,7 @@ public class AppConfig {
             SerializedName serializedNameAnnotation = field.getAnnotation(SerializedName.class);
             if (serializedNameAnnotation == null) continue;
             String serializedName = serializedNameAnnotation.value();
-            if (serializedName.equals("")) continue;
+            if (serializedName.isEmpty()) continue;
             FIELDS.add(field);
         }
     }

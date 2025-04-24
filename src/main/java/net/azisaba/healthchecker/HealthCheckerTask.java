@@ -32,7 +32,7 @@ public class HealthCheckerTask extends TimerTask {
     private boolean wasDown = false;
 
     public HealthCheckerTask(@NotNull ConfiguredServer server) {
-        this.server = new Server(server);
+        this.server = new Server(this, server);
         CachedData data = CacheFile.map.get(server.getName());
         if (data != null) {
             this.wasDown = data.wasDown;
@@ -63,13 +63,15 @@ public class HealthCheckerTask extends TimerTask {
                     CachedData data = CacheFile.map.computeIfAbsent(server.getConfig().getName(), name -> new CachedData(wasDown, server.downSince));
                     data.wasDown = false;
                     data.downSince = 0;
-                    CacheFile.save();
                 }
                 if (!wasDown) {
                     server.downSince = 0;
                 }
                 lastException = null;
                 reallyUp.set(true);
+                if (AppConfig.debug) {
+                    LOGGER.info("{} ({}) is up.", server.getConfig().getName(), server.getConfig().getHost());
+                }
             }
             if (!wasDown && server.downSince > 0 && server.downSince <= System.currentTimeMillis() - (long) server.getConfig().getPeriod() * server.getConfig().getThreshold()) {
                 wasDown = true;
@@ -78,7 +80,6 @@ public class HealthCheckerTask extends TimerTask {
                 CachedData data = CacheFile.map.computeIfAbsent(server.getConfig().getName(), name -> new CachedData(wasDown, server.downSince));
                 data.wasDown = true;
                 data.downSince = server.downSince;
-                CacheFile.save();
 
                 String suffix = "";
                 if (lastException != null) suffix = " (" + lastException.getClass().getSimpleName() + ": " + lastException.getMessage() + ")";
@@ -105,7 +106,15 @@ public class HealthCheckerTask extends TimerTask {
         });
     }
 
+    public boolean isUp() {
+        return reallyUp.get();
+    }
+
     public static void shutdown() {
         EXECUTOR.shutdownNow();
+    }
+
+    public @NotNull Server getServer() {
+        return server;
     }
 }

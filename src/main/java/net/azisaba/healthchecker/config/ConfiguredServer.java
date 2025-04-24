@@ -2,23 +2,23 @@ package net.azisaba.healthchecker.config;
 
 import net.azisaba.healthchecker.util.InvalidArgumentException;
 import net.azisaba.healthchecker.util.StringReader;
+import net.azisaba.healthchecker.util.Util;
 import net.azisaba.healthchecker.yaml.YamlObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.Locale;
 
 public class ConfiguredServer {
-    private final String name;
-    private final Protocol protocol;
-    private final InetSocketAddress host;
+    private final @NotNull String name;
+    private final @NotNull Protocol protocol;
+    private final @NotNull InetSocketAddress host;
     private final int period;
     private final int threshold;
-    private final String discordWebhook;
-    private final String webhookMessagePrefix;
+    private final @Nullable String discordWebhook;
+    private final @Nullable String webhookMessagePrefix;
+    private final @Nullable String zoneId;
 
     public ConfiguredServer(@NotNull String name,
                             @NotNull Protocol protocol,
@@ -26,7 +26,8 @@ public class ConfiguredServer {
                             int period,
                             int threshold,
                             @Nullable String discordWebhook,
-                            @Nullable String webhookMessagePrefix) {
+                            @Nullable String webhookMessagePrefix,
+                            @Nullable String zoneId) {
         this.name = name;
         this.protocol = protocol;
         this.host = host;
@@ -34,6 +35,7 @@ public class ConfiguredServer {
         this.threshold = threshold;
         this.discordWebhook = discordWebhook;
         this.webhookMessagePrefix = webhookMessagePrefix;
+        this.zoneId = zoneId;
     }
 
     @NotNull
@@ -53,38 +55,8 @@ public class ConfiguredServer {
         int threshold = obj.getInt("threshold", 10);
         String discordWebhook = obj.getString("discordWebhook");
         String webhookMessagePrefix = obj.getString("webhookMessagePrefix");
-        return new ConfiguredServer(name, protocol, explode(host), period, threshold, discordWebhook, webhookMessagePrefix);
-    }
-
-    @NotNull
-    public static InetSocketAddress explode(@NotNull String s) throws InvalidArgumentException {
-        StringReader reader = new StringReader(s);
-        if (s.indexOf(':') == -1)
-            throw InvalidArgumentException.createUnexpectedEOF(':').withContext(reader, reader.length(), 1);
-        if (s.indexOf(':') != s.lastIndexOf(':')) {
-            int idx = s.indexOf(':');
-            while (!reader.isEOF()) {
-                if (reader.peek() == ':' && reader.getIndex() != idx) {
-                    break;
-                }
-                reader.readFirst();
-            }
-            throw new InvalidArgumentException("Malformed host:port string").withContext(reader, 0, reader.length() - reader.getIndex());
-        }
-        int port;
-        try {
-            port = Integer.parseInt(s.split(":")[1]);
-            if (port <= 0 || port > 65535) throw new NumberFormatException();
-        } catch (NumberFormatException e) {
-            throw new InvalidArgumentException("Invalid port").withContext(reader, s.indexOf(':'), s.length() - s.indexOf(':'));
-        }
-        InetAddress address;
-        try {
-            address = InetAddress.getByName(s.split(":")[0]);
-        } catch (UnknownHostException e) {
-            throw new InvalidArgumentException("Unknown host", e).withContext(reader, 0, s.indexOf(':'));
-        }
-        return new InetSocketAddress(address, port);
+        String zoneId = obj.getString("zoneId");
+        return new ConfiguredServer(name, protocol, Util.explode(host), period, threshold, discordWebhook, webhookMessagePrefix, zoneId);
     }
 
     @NotNull
@@ -124,5 +96,9 @@ public class ConfiguredServer {
     @Nullable
     public String getWebhookMessagePrefix() {
         return webhookMessagePrefix;
+    }
+
+    public @Nullable String getZoneId() {
+        return zoneId;
     }
 }
