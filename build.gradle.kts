@@ -32,6 +32,7 @@ tasks {
         manifest {
             attributes(
                 "Main-Class" to "net.azisaba.healthchecker.Main",
+                "Multi-Release" to true,
             )
         }
         archiveFileName.set("AzisabaHealthChecker.jar")
